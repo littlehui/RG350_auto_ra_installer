@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # BEGIN PARAMETER ZONE
-BUILD_STOCK=true        # Build Stock version of installer
+BUILD_STOCK=false        # Build Stock version of installer
 BUILD_ODBETA=true       # Build ODBeta version of installer
 CONF_CSV=all            # Name of CSV with parameterization, without extension
 # END PARAMETER ZONE
@@ -11,6 +11,9 @@ CONF_CSV=all            # Name of CSV with parameterization, without extension
 [[ ! -z "${E_CONF_CSV}" ]] && CONF_CSV="${E_CONF_CSV}"
 
 DIRECTORY=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
+if ! command -v 7z >/dev/null 2>&1 && [ -x "$HOME/.local/bin/7z" ]; then
+    export PATH="$HOME/.local/bin:$PATH"
+fi
 VERSION=$(cat ${DIRECTORY}/v)
 RA_DIST_FILE=${VERSION}_RetroArch.7z
 OPK_NAME_ST=RA_Stock_Installer_v${VERSION}.opk
@@ -45,6 +48,7 @@ if [ ${BUILD_STOCK} = true ] ; then
     mkdir -p ${DIRECTORY}/build_st/retroarch/.retroarch/cores
     cp ${DIRECTORY}/opendingux_ra_cores_unofficial/"stock or rogue"/*.so ${DIRECTORY}/build_st/retroarch/.retroarch/cores/
     cp ${DIRECTORY}/build_st/cores/*.so ${DIRECTORY}/build_st/retroarch/.retroarch/cores/
+    find ${DIRECTORY}/files_ra/cores -maxdepth 1 -name '*.so' -exec cp {} ${DIRECTORY}/build_st/retroarch/.retroarch/cores/ \;
     tar -czf ${DIRECTORY}/files_st/retroarch.tgz -C ${DIRECTORY}/build_st/retroarch/.retroarch assets core_info cores database filters system
 
     echo "    Building OPK wrappers"
@@ -150,30 +154,66 @@ if [ ${BUILD_ODBETA} = true ] ; then
     if [ ! -d ${DIRECTORY}/build_odb ] ; then
         mkdir ${DIRECTORY}/build_odb
     fi
-    if [ ! -f ${DIRECTORY}/build_odb/${RA_DIST_FILE} ] ; then
-        echo "    Downloading RA distribution"
-        RA_DIST_URL_ST=https://buildbot.libretro.com/nightly/dingux/mips32-odbeta/${RA_DIST_FILE}
-        wget -q -P ${DIRECTORY}/build_odb ${RA_DIST_URL_ST}
+    LOCAL_OPK=${DIRECTORY}/retroarch_rg350_odbeta.opk
+    LOCAL_CORE=$(find ${DIRECTORY}/files_ra/cores -maxdepth 1 -name '*.so' -print -quit 2>/dev/null)
+    if [ -n "${LOCAL_CORE}" ] && [ -f ${LOCAL_OPK} ] ; then
+        echo "    Using files_ra/cores and retroarch_rg350_odbeta.opk"
+        if [ -d ${DIRECTORY}/build_odb/retroarch ] ; then
+            rm -rf ${DIRECTORY}/build_odb/retroarch
+        fi
+        mkdir -p ${DIRECTORY}/build_odb/retroarch/.retroarch
+        if [ -d ${DIRECTORY}/files_ra/assets ] ; then
+            for part in assets core_info database filters system ; do
+                rm -rf ${DIRECTORY}/build_odb/retroarch/.retroarch/${part}
+                cp -a ${DIRECTORY}/files_ra/${part} ${DIRECTORY}/build_odb/retroarch/.retroarch/
+            done
+        elif [ -f ${DIRECTORY}/files_odb/retroarch.tgz ] ; then
+            tar -xzf ${DIRECTORY}/files_odb/retroarch.tgz -C ${DIRECTORY}/build_odb/retroarch/.retroarch
+            rm -rf ${DIRECTORY}/build_odb/retroarch/.retroarch/cores
+        elif [ -f ${DIRECTORY}/build_odb/${RA_DIST_FILE} ] ; then
+            7z -bb0 -bso0 -bse0 -bsp0 x -o${DIRECTORY}/build_odb ${DIRECTORY}/build_odb/${RA_DIST_FILE}
+            status=$?
+            [ ! ${status} -eq 0 ] && echo "@@ ERROR: Problem unpacking RA distribution" && exit ${status}
+            rm -rf ${DIRECTORY}/build_odb/retroarch/.retroarch/cores
+        else
+            echo "@@ ERROR: Local frontend is present, but files_ra assets are missing." && exit 1
+        fi
+        mkdir -p ${DIRECTORY}/build_odb/retroarch/.retroarch/cores
+        find ${DIRECTORY}/files_ra/cores -maxdepth 1 -name '*.so' -exec cp {} ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/ \;
+        cp -f ${LOCAL_OPK} ${DIRECTORY}/files_odb/retroarch_rg350_odbeta.opk
+        rm -rf ${DIRECTORY}/build_odb/local_opk
+        unsquashfs -f -d ${DIRECTORY}/build_odb/local_opk ${LOCAL_OPK} >/dev/null
+        cp -f ${DIRECTORY}/build_odb/local_opk/retroarch ${DIRECTORY}/files_odb/retroarch_rg350_odbeta
+        chmod +x ${DIRECTORY}/files_odb/retroarch_rg350_odbeta
+        rm -rf ${DIRECTORY}/build_odb/local_opk
+    else
+        if [ ! -f ${DIRECTORY}/build_odb/${RA_DIST_FILE} ] ; then
+            echo "    Downloading RA distribution"
+            RA_DIST_URL_ST=https://buildbot.libretro.com/nightly/dingux/mips32-odbeta/${RA_DIST_FILE}
+            wget -q -P ${DIRECTORY}/build_odb ${RA_DIST_URL_ST}
+            status=$?
+            [ ! ${status} -eq 0 ] && echo "@@ ERROR: Problem downloading RA distribution. Surely the version configured in '${DIRECTORY}/v' is more than two weeks old." && exit ${status}
+        fi
+
+        echo "    Unpacking RA distribution"
+        if [ -d ${DIRECTORY}/build_odb/retroarch ] ; then
+            rm -rf ${DIRECTORY}/build_odb/retroarch
+        fi
+        7z -bb0 -bso0 -bse0 -bsp0 x -o${DIRECTORY}/build_odb ${DIRECTORY}/build_odb/${RA_DIST_FILE}
         status=$?
-        [ ! ${status} -eq 0 ] && echo "@@ ERROR: Problem downloading RA distribution. Surely the version configured in '${DIRECTORY}/v' is more than two weeks old." && exit ${status}
-    fi
+        [ ! ${status} -eq 0 ] && echo "@@ ERROR: Problem unpacking RA distribution" && exit ${status}
 
-    echo "    Unpacking RA distribution"
-    if [ -d ${DIRECTORY}/build_odb/retroarch ] ; then
-        rm -rf ${DIRECTORY}/build_odb/retroarch
+        echo "    Building RA core pack"
+        mv ${DIRECTORY}/build_odb/retroarch/bin/retroarch_rg350_odbeta ${DIRECTORY}/files_odb/
+        mv ${DIRECTORY}/build_odb/retroarch/retroarch_rg350_odbeta.opk ${DIRECTORY}/files_odb/
+        cp -r ${DIRECTORY}/build_odb/retroarch/.retroarch/cores ${DIRECTORY}/build_odb/cores
+        mkdir -p ${DIRECTORY}/build_odb/retroarch/.retroarch/cores
+        cp ${DIRECTORY}/opendingux_ra_cores_unofficial/"stock or rogue"/*.so ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/
+        cp ${DIRECTORY}/opendingux_ra_cores_unofficial/beta/*.so ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/
+        cp ${DIRECTORY}/build_odb/cores/*.so ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/
+        find ${DIRECTORY}/files_ra/cores -maxdepth 1 -name '*.so' -exec cp {} ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/ \;
     fi
-    7z -bb0 -bso0 -bse0 -bsp0 x -o${DIRECTORY}/build_odb ${DIRECTORY}/build_odb/${RA_DIST_FILE}
-    status=$?
-    [ ! ${status} -eq 0 ] && echo "@@ ERROR: Problem unpacking RA distribution" && exit ${status}
-
-    echo "    Building RA core pack"
-    mv ${DIRECTORY}/build_odb/retroarch/bin/retroarch_rg350_odbeta ${DIRECTORY}/files_odb/
-    mv ${DIRECTORY}/build_odb/retroarch/retroarch_rg350_odbeta.opk ${DIRECTORY}/files_odb/
-    cp -r ${DIRECTORY}/build_odb/retroarch/.retroarch/cores ${DIRECTORY}/build_odb/cores
-    mkdir -p ${DIRECTORY}/build_odb/retroarch/.retroarch/cores
-    cp ${DIRECTORY}/opendingux_ra_cores_unofficial/"stock or rogue"/*.so ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/
-    cp ${DIRECTORY}/opendingux_ra_cores_unofficial/beta/*.so ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/
-    cp ${DIRECTORY}/build_odb/cores/*.so ${DIRECTORY}/build_odb/retroarch/.retroarch/cores/
+    echo "    Packing RA core archive"
     tar -czf ${DIRECTORY}/files_odb/retroarch.tgz -C ${DIRECTORY}/build_odb/retroarch/.retroarch assets core_info cores database filters system
 
     echo "    Building OPK wrappers"

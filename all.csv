@@ -67,6 +67,7 @@ PICO-8|PICO8|pico8|true|retro8_libretro.so|Retro8|p8,png|/media/sdcard/roms/PICO
 ScummVM|SCUMMVM|scummvm|true|scummvm_libretro.so|||/media/sdcard/roms/SCUMMVM/
 Nintendo SNES|SFC_S9x2005|sfc|true|snes9x2005_libretro.so|Snes9x|smc,sfc,zip,7z|/media/sdcard/roms/SFC/
 Nintendo SNES|SFC_S9x2005Plus|sfc|true|snes9x2005_plus_libretro.so|Snes9x+|smc,sfc,zip,7z|/media/sdcard/roms/SFC/
+Nintendo SNES|SFC_S9x|sfc|true|snes9x_libretro.so|Snes9x|smc,sfc,zip,7z|/media/sdcard/roms/SFC/
 Java ME|JAVAME|javame|true|squirreljme_libretro.so||jar,sqc,jam,jad,kjx|/media/sdcard/roms/JAVAME/
 Atari 2600|A2600|a2600|true|stella2014_libretro.so|Stella|bin,a26,7z,zip|/media/sdcard/roms/A2600/
 Tamagotchi P1|TAMAGOTCHI|tamagotchi|true|tamalibretro_libretro.so||b,bin,rom|/media/sdcard/roms/TAMAGOTCHI/
@@ -98,3 +99,19 @@ Stone Soup|STONESOUP|stonesoup|true|stonesoup_libretro.so||crawlrc|/media/sdcard
 Thomson MO-TO|MOTO|moto|true|theodore_libretro.so|Theodore|fd,sap,k7,m7,m5,rom,zip,7z|/media/sdcard/roms/MOTO/
 Uzebox|UZEBOX|uzebox|true|uzem_libretro.so||uze,zip,7z|/media/sdcard/roms/UZEBOX/
 Vectrex|VECTREX|vectrex|true|vecx_libretro.so|Vecx|bin,vec,zip,7z|/media/sdcard/roms/VECTREX/
+SEGA MD|MD_BlastEm|md|true|blastem_libretro.so|BlastEm|zip,bin,smd,md,gen,7z|/media/sdcard/roms/MD/
+SEGA MD|MD_Clown|md|true|clownmdemu_libretro.so|ClownMDEmu|zip,bin,md,gen,cue,chd,7z|/media/sdcard/roms/MD/
+Arcade|DICE|mame2003|true|dice_libretro.so|DICE|zip,7z|/media/sdcard/roms/ARCADE/
+Longman 4980|GAM4980|unknown|true|gam4980_libretro.so|GAM4980|gam|/media/sdcard/roms/GAM4980/
+NEC PCE|PCE_Geargrafx|pce|true|geargrafx_libretro.so|Geargrafx|pce,sgx,cue,chd,zip,7z|/media/sdcard/roms/PCE/
+Atari Lynx|LYNX_Gearlynx|atari_lynx|true|gearlynx_libretro.so|Gearlynx|lnx,lyx,o,bin,zip,7z|/media/sdcard/roms/LYNX/
+SEGA MD|MD_GenWide|md|true|genesis_plus_gx_wide_libretro.so|Genesis Plus Wide|zip,bin,smd,md,gen,7z|/media/sdcard/roms/MD/
+Z-Machine|MOJOZORK|unknown|true|mojozork_libretro.so|MojoZork|dat,z1,z3|/media/sdcard/roms/ZMACHINE/
+Cassette Vision|PD777|unknown|true|pd777_libretro.so|PD777|zip,bin777,ptn777|/media/sdcard/roms/CASSETTEVISION/
+Atari 2600|A2600_TIA|a2600|true|tia_libretro.so|TIA|a26,bin,zip,7z|/media/sdcard/roms/A2600/
+Commodore 128|C128|c64|true|vice_x128_libretro.so|Vice|d64,d71,prg,t64,tap,zip,7z|/media/sdcard/roms/C128/
+Commodore 64|C64_Accurate|c64|true|vice_x64sc_libretro.so|Vice|crt,d64,t64,bin,zip,7z|/media/sdcard/roms/C64/
+Commodore PET|PET|c64|true|vice_xpet_libretro.so|Vice|d64,prg,tap,zip,7z|/media/sdcard/roms/PET/
+Commodore PLUS/4|PLUS4|c64|true|vice_xplus4_libretro.so|Vice|d64,prg,tap,zip,7z|/media/sdcard/roms/PLUS4/
+Commodore 64|C64_SuperCPU|c64|true|vice_xscpu64_libretro.so|Vice|crt,d64,t64,bin,zip,7z|/media/sdcard/roms/C64/
+Commodore VIC-20|VIC20|c64|true|vice_xvic_libretro.so|Vice|d64,prg,rom,zip,7z|/media/sdcard/roms/VIC20/

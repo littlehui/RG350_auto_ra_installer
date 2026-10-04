@@ -13,3 +13,6 @@ files_odb/retroarch_rg350_odbeta
 files_odb/retroarch.tgz
 files_odb/apps_ra.tgz
 files_odb/links.tgz
+
+files_ra/system/
+.all.csv.swp
